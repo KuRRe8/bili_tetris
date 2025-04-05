@@ -10,6 +10,7 @@ import config.settings
 from _logger import logger
 import keyboard
 import time
+from _utils import classonlymethod
 
 
 class KeyboardController:
@@ -18,34 +19,47 @@ class KeyboardController:
     Rotate before move left right since rotate will change the position near the wall.
     """
     def __init__(self):
-        pass
+        raise NotImplementedError("KeyboardController cannot be instantiated.")
 
-    def press_left(self):
+
+    @classonlymethod
+    def press_left(cls):
         keyboard.send('left')
 
-    def press_right(self):
+    @classonlymethod
+    def press_right(cls):
         keyboard.send('right')
 
-    def press_drop(self):
+    @classonlymethod
+    def press_up(cls):
+        keyboard.send('up')
+    
+    @classonlymethod
+    def press_drop(cls):
         keyboard.send('space')
 
-    def press_rotate(self):
+    @classonlymethod
+    def press_rotate(cls):
         keyboard.send('e')
 
-    def press_soft_drop(self):
+    @classonlymethod
+    def press_soft_drop(cls):
         keyboard.send('down')
 
-    def multi_left(self,multi: int):
+    @classonlymethod
+    def multi_left(cls, multi: int):
         for _ in range(multi):
             time.sleep(config.settings.KBD_MININTERVAL)
             keyboard.send('left')
 
-    def multi_right(self,multi: int):
+    @classonlymethod
+    def multi_right(cls, multi: int):
         for _ in range(multi):
             time.sleep(config.settings.KBD_MININTERVAL)
             keyboard.send('right')
 
-    def multi_rotate(self,multi: int):
+    @classonlymethod
+    def multi_rotate(cls, multi: int):
         for _ in range(multi):
             time.sleep(config.settings.KBD_MININTERVAL)
             keyboard.send('e')

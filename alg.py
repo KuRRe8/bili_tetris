@@ -36,11 +36,15 @@ class GameState(metaclass=_utils.SingletonMeta):
         if board_data.shape != self.game_board.shape:
             raise ValueError("Board data shape mismatch.")
         self.game_board = board_data.copy()
+        logger.debug('Updating game board in GameState Class')
 
     def update_current_block(self, block):
+        logger.debug(f"Updating current block in GameState Class: {block}")
+
         self.current_block = block
 
     def update_next_block(self, block):
+        logger.debug(f"Updating next block in GameState Class: {block}")
         self.next_block = block
 
     def reset(self):

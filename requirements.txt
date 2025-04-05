@@ -2,3 +2,5 @@ pyautogui
 keyboard
 mss
 numpy
+pygetwindow
+pywin32

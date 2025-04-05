@@ -10,6 +10,7 @@ import config.settings
 from _logger import logger
 from enum import Enum
 from typing import List, Tuple
+import pygetwindow as gw
 
 class TetrisBlockType(Enum):
     I = "I"
@@ -37,3 +38,29 @@ class classonlymethod(classmethod):
         if instance is not None:
             raise AttributeError("This method is available only on the class, not on instances.")
         return super(classonlymethod, self).__get__(instance, cls)
+    
+class WindowUtils:
+    @classonlymethod
+    def find_tetris_window(cls) -> gw.Window:
+        """
+        Find the Tetris window based on the title.
+        """
+        windows = gw.getWindowsWithTitle(config.settings.CV_WINDOW_TITLE)
+        if not windows:
+            raise RuntimeError(f"Window '{config.settings.CV_WINDOW_TITLE}' not found.")
+        return windows[0]  # Win32window type, get the first one, since if try to find a window solely by name may reture multiple windows.
+
+    @classonlymethod
+    def bring_to_front(cls, window: gw.Window) -> None:
+        """
+        Bring the Tetris window to the front.
+        """
+        if not isinstance(window, gw.Window):
+            raise TypeError("Expected a pygetwindow.Window instance.")
+        try:
+            import win32gui
+            win32gui.SetForegroundWindow(window._hWnd)  # Bring the window to the foreground
+            logger.debug(f"Set focus to window with handle: {window._hWnd}")
+        except ImportError:
+            logger.error("win32gui module is not available. Cannot set focus to window.")
+            return

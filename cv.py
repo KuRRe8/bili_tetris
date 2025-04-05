@@ -138,7 +138,7 @@ class ScreenshotProcessor:
 
         center_y = y + 0*cell_height_in_pixel_float + cell_height_in_pixel_float / 2
         center_y = round(center_y)
-        center_x = x + 5 * cell_width_in_pixel_float + cell_width_in_pixel_float / 2
+        center_x = x + 4 * cell_width_in_pixel_float + cell_width_in_pixel_float / 2
         center_x = round(center_x)
         cell_center_bgr = img_with_bbox[center_y, center_x] # BGR, here y refers to the picture y, but it is literally x in ndarray.
         
@@ -159,7 +159,7 @@ class ScreenshotProcessor:
                     break
         else:
             # try to find row 1 col 6
-            center_x = x + 6 * cell_width_in_pixel_float + cell_width_in_pixel_float / 2
+            center_x = x + 5 * cell_width_in_pixel_float + cell_width_in_pixel_float / 2
             center_x = round(center_x)
             cell_center_bgr = img_with_bbox[center_y, center_x] # BGR
             if np.all(cell_center_bgr == config.settings.CV_PZONE_BACKGROUND_COLOR):
@@ -255,10 +255,12 @@ def _test_routine1():
     alg.GameState().reset()
     _utils.WindowUtils.bring_to_front(_utils.WindowUtils.find_tetris_window())
 
-    for _ in range(5):
+    for _ in range(6):
+        print(f'in the loop{_}')
         import time
-        time.sleep(0.2)
+        time.sleep(0.1)
         keyboardctrl.KeyboardController.press_drop()
+        time.sleep(0.2) # sleep here since a little lantency show the comming one
         # fast drop once before the loop
         sp.capture()
         sp.get_P_zone_new_state()

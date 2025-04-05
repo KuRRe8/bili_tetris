@@ -84,6 +84,8 @@ class ScreenshotProcessor:
         '''
         In this method, determine which block is filled, and internally update GameState singleton.
         new state is represented by ndarray of 20 rows and 10 columns.
+
+        Return: preview of annoated image.
         '''
         pass
     

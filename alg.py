@@ -19,7 +19,7 @@ class GameState(metaclass=_utils.SingletonMeta):
     singleton
     """
     def __init__(self, rows=20, cols=10):
-        logger.info('Singleton instance of GameState created.')
+        logger.info('Singleton instance of GameState created!!!!!')
         # Game Board represented as a 2D numpy array, filled area (FA) and blank area (BA)
         # 0 indicates an empty cell, non-zero values represent filled cells
         self.game_board = np.zeros((rows, cols), dtype=np.int8)
@@ -37,10 +37,10 @@ class GameState(metaclass=_utils.SingletonMeta):
             raise ValueError("Board data shape mismatch.")
         self.game_board = board_data.copy()
 
-    def set_current_block(self, block):
+    def update_current_block(self, block):
         self.current_block = block
 
-    def set_next_block(self, block):
+    def update_next_block(self, block):
         self.next_block = block
 
     def reset(self):
@@ -54,3 +54,7 @@ class GameState(metaclass=_utils.SingletonMeta):
     def __repr__(self):
         return (f"GameState(Board shape={self.game_board.shape}, "
                 f"current_block={self.current_block}, next_block={self.next_block})")
+    
+
+if __name__ == "__main__":
+    pass

@@ -59,6 +59,81 @@ class GameState(metaclass=_utils.SingletonMeta):
         return (f"GameState(Board shape={self.game_board.shape}, "
                 f"current_block={self.current_block}, next_block={self.next_block})")
     
+class SearchAlgorithm:
+    @_utils.classonlymethod
+    def _evaluate(cls, current_attack: float = 0.0) -> int:
+        state = GameState()
+        board = state.game_board
+        rows, cols = board.shape
+
+        score = 0
+        min_y = np.zeros(cols + 1, dtype=int) # one more column for height check
+
+        # Unified evaluation weights
+        factor = {'hole': -50, 'h_change': -5, 'y_factor': -10, 'h_variance': -10}
+
+        # Column heights (min_y)
+        for x in range(cols):
+            for y in range(rows):
+                if board[y, x] != 0:
+                    min_y[x] = y
+                    break
+            else:
+                min_y[x] = rows
+
+        # Hole count
+        hole_score = 0
+        for x in range(cols):
+            for y in range(min_y[x] + 1, rows):
+                if board[y, x] == 0:
+                    hole_score += factor['hole']
+        score += hole_score
+
+        # Height change
+        for x in range(1, cols):
+            v = min_y[x] - min_y[x - 1]
+            score += abs(v) * factor['h_change']
+
+        # Refined average height: exclude 1~2 outliers
+        sorted_heights = np.sort(min_y[:cols])
+        trimmed_heights = sorted_heights[1:-1] if cols > 2 else sorted_heights
+        avg_height = np.mean(trimmed_heights)
+
+        # Apply Y factor penalty only if average height is out of 4~10 range
+        if avg_height < 4:
+            penalty = (4 - avg_height) ** 2
+            score += int(factor['y_factor'] * penalty / rows)
+        elif avg_height > 10:
+            penalty = (avg_height - 10) ** 2
+            score += int(factor['y_factor'] * penalty / rows)
+
+        # Height variance
+        h_var_sum = sum((avg_height - min_y[x]) ** 2 for x in range(cols))
+        h_variance_score = h_var_sum * factor['h_variance'] / (cols * 100)
+        score += int(h_variance_score)
+
+        # Add attack score from game module
+        score += int(current_attack)
+
+        return int(score)
+    
+    @_utils.classonlymethod
+    def _get_attack_result(cls):
+        """
+        Calculate the attack result based on the current game state.
+        :param
+        :return: 
+        """
+        pass
+    
+    @_utils.classonlymethod
+    def search(self) :
+        """
+        Perform a search algorithm to find the best move.
+        :param 
+        :return: 
+        """
+        pass
 
 if __name__ == "__main__":
     pass

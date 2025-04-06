@@ -9,8 +9,9 @@ Description:
 import config.settings
 from _logger import logger
 from enum import Enum
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Union, Optional
 import pygetwindow as gw
+import numpy as np
 
 class SingletonMeta(type):
     _instances = {}
@@ -202,3 +203,44 @@ class Tetrominoes:
             ],
         ],
     }
+    
+    
+    
+    Tetris_Col_H: Optional[ dict[ TetrisBlockType, Union[np.ndarray,list[list]] ] ]= {}    
+    # for each block type, have ndarray, first dimension is spin, second dimension is 4 columns height that been filled.
+
+    # this variable will build statically at each time this script first imported.
+    # typically it looks like this
+    '''
+        {<TetrisBlockType.T: 'T'>: [[3, 3, 3, 0],
+                                    [0, 4, 3, 0],
+                                    [3, 4, 3, 0],
+                                    [3, 4, 0, 0]],
+        <TetrisBlockType.O: 'O'>: [[0, 3, 3, 0]],
+        <TetrisBlockType.L: 'L'>: [[3, 3, 3, 0],
+                                    [0, 4, 4, 0],
+                                    [4, 3, 3, 0],
+                                    [2, 4, 0, 0]],
+        <TetrisBlockType.I: 'I'>: [[3, 3, 3, 3], [0, 4, 0, 0]],
+        <TetrisBlockType.J: 'J'>: [[3, 3, 3, 0],
+                                    [0, 4, 2, 0],
+                                    [3, 3, 4, 0],
+                                    [4, 4, 0, 0]],
+        <TetrisBlockType.Z: 'Z'>: [[0, 3, 2, 0], [2, 3, 3, 0]],
+        <TetrisBlockType.S: 'S'>: [[0, 2, 3, 0], [3, 3, 2, 0]]}
+    '''
+
+
+
+    for block_type, rotations in shapes.items():
+        Tetris_Col_H[block_type] = []
+        for shape in rotations:
+            shape_np = np.array(shape)
+            col_heights = [0] * 4
+            for x in range(4):
+                for y in range(4):
+                    if shape_np[y][x]:
+                        col_heights[x] = y + 1
+            Tetris_Col_H[block_type].append(col_heights)
+
+    logger.info('Tetris_Col_H calculated.')

@@ -12,15 +12,6 @@ from enum import Enum
 from typing import List, Tuple
 import pygetwindow as gw
 
-class TetrisBlockType(Enum):
-    I = "I"
-    O = "O"
-    T = "T"
-    S = "S"
-    Z = "Z"
-    J = "J"
-    L = "L"
-
 class SingletonMeta(type):
     _instances = {}
     def __call__(cls, *args, **kwargs):
@@ -64,3 +55,150 @@ class WindowUtils:
         except ImportError:
             logger.error("win32gui module is not available. Cannot set focus to window.")
             return
+        
+class TetrisBlockType(Enum):
+    I = "I"
+    O = "O"
+    T = "T"
+    S = "S"
+    Z = "Z"
+    J = "J"
+    L = "L"
+
+class Tetrominoes:
+    '''
+    This class define the shape of each Tetrominoe in each spin
+    One efficient representation is bitmap, but I will use direct representation in a 4*4 grid.
+    '''
+
+    # class variables
+    shapes = {
+        TetrisBlockType.I: [
+            [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 1, 1, 1],
+                [0, 0, 0, 0],
+            ],
+            [
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+            ],
+        ],
+        TetrisBlockType.O: [
+            [
+                [0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0],
+            ],
+        ],
+        TetrisBlockType.T: [
+            [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [1, 1, 1, 0],
+                [0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 1, 1, 0],
+                [0, 1, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [1, 1, 0, 0],
+                [0, 1, 0, 0],
+            ],
+        ],
+        TetrisBlockType.S: [
+            [
+                [0, 1, 0, 0],
+                [0, 1, 1, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [1, 1, 0, 0],
+                [0, 0, 0, 0],
+            ],
+        ],
+        TetrisBlockType.Z: [
+            [
+                [0, 0, 1, 0],
+                [0, 1, 1, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [1, 1, 0, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0],
+            ],
+        ],
+        TetrisBlockType.J: [
+            [
+                [0, 0, 0, 0],
+                [1, 0, 0, 0],
+                [1, 1, 1, 0],
+                [0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 1, 1, 0],
+                [0, 0, 1, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [1, 1, 0, 0],
+            ],
+        ],
+        TetrisBlockType.L: [
+            [
+                [0, 0, 0, 0],
+                [0, 0, 1, 0],
+                [1, 1, 1, 0],
+                [0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 1, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 1, 1, 0],
+                [1, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [1, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+            ],
+        ],
+    }

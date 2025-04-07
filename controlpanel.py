@@ -8,12 +8,14 @@ Description:
 """
 
 import config.settings
-from _logger import logger
+
 import tkinter as tk
 
 class ControlPanel:
-    def __init__(self):
+    def __init__(self, close_event=None):
         self.root = tk.Tk()
+        self.close_event = close_event
+
 
         # 设置窗口为置顶
         self.root.attributes('-topmost', config.settings.CP_TOPMOST)
@@ -28,7 +30,7 @@ class ControlPanel:
         self.root.geometry('300x100+100+100')  # 宽度300，高度100，位置(100,100)
 
         # 添加标签用于显示信息
-        self.label = tk.Label(self.root, text="最高行数: 0\n决策数: 0", font=("Arial", 14), bg='black', fg='white')
+        self.label = tk.Label(self.root, text="开启自动: 否\n决策数: 0/s", font=("Arial", 14), bg='black', fg='white')
         self.label.pack(fill='both', expand=True)
 
         # 绑定鼠标事件以实现拖动
@@ -53,19 +55,29 @@ class ControlPanel:
         y = self.root.winfo_y() + event.y - self._offset_y
         self.root.geometry(f"+{x}+{y}")
 
-    def exit_window(self, event):
+    def exit_window(self, event=None):
         # 退出窗口
         self.root.destroy()
 
+    def _check_close(self):
+        # 周期性检查进程间的关闭事件
+        if self.close_event is not None and self.close_event.is_set():
+
+            self.exit_window()
+        else:
+            self.root.after(100, self._check_close)
+
     def start(self):
-        # 启动窗口的主循环
+        # 启动关闭检查，启动窗口的主循环
+        if self.close_event is not None:
+            self.root.after(100, self._check_close)
         self.root.mainloop()
 
-    def update(self, highest_row, decision_rate):
+    def update(self, autoplay: bool, decision_rate: float):
         # 更新标签的文本
-        self.label.config(text=f"最高行数: {highest_row}\n决策数: {decision_rate}")
+        self.label.config(text=f"开启自动: {autoplay}\n决策数: {decision_rate:.2f}")
 
 if __name__ == "__main__":
-    logger.info('Control Panel test1')
+
     conp = ControlPanel()
     conp.start()

@@ -24,6 +24,9 @@ LOGGER_LVL = 10
 
 # KBD
 KBD_MININTERVAL = 0.05 # unstable when less than 0.03
+KBD_LISTENER_FUNC_HOTKEY = 'alt+9'
+KBD_STOP_FUNC_HOTKEY = 'alt+0'
+KBD_EXIT_HOTKEY = 'alt+='
 
 # Control Panel
 CP_ALPHA = 0.7

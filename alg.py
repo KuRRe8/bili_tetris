@@ -27,6 +27,7 @@ class GameState(metaclass=_utils.SingletonMeta):
         self.current_block: Optional[_utils.TetrisBlockType] = None
         # Next block (NB): the upcoming block preview from the N zone
         self.next_block: Optional[_utils.TetrisBlockType] = None
+        self.up_to_date = False
 
     def update_board(self, board_data: np.ndarray):
         """
@@ -54,6 +55,7 @@ class GameState(metaclass=_utils.SingletonMeta):
         self.game_board.fill(0)
         self.current_block = None
         self.next_block = None
+        self.up_to_date = False
 
     def __repr__(self):
         return (f"GameState(Board shape={self.game_board.shape}, "

@@ -11,6 +11,7 @@ from _logger import logger
 import keyboard
 import time
 from _utils import classonlymethod
+from typing import Callable
 
 
 class KeyboardController:
@@ -36,6 +37,7 @@ class KeyboardController:
     
     @classonlymethod
     def press_drop(cls):
+        time.sleep(config.settings.KBD_MININTERVAL)
         keyboard.send('space')
 
     @classonlymethod
@@ -63,6 +65,20 @@ class KeyboardController:
         for _ in range(multi):
             time.sleep(config.settings.KBD_MININTERVAL)
             keyboard.send('e')
+
+    @classonlymethod
+    def assign_hotkey(cls, listener_func: Callable, stop_func:Callable, exit_routine: Callable):
+        logger.info(f'assigning hot keys {config.settings.KBD_LISTENER_FUNC_HOTKEY}, '
+                    f'{config.settings.KBD_STOP_FUNC_HOTKEY}, '
+                    f'{config.settings.KBD_EXIT_HOTKEY} ')
+        keyboard.add_hotkey(config.settings.KBD_LISTENER_FUNC_HOTKEY, listener_func)
+        keyboard.add_hotkey(config.settings.KBD_STOP_FUNC_HOTKEY, stop_func)
+        keyboard.add_hotkey(config.settings.KBD_EXIT_HOTKEY, exit_routine)
+   
+    @classonlymethod
+    def cancel_hotkey(cls):
+        logger.info('cancel all hotkeys')
+        keyboard.remove_all_hotkeys()
 
 # test code if directly run this script
 if __name__ == '__main__':

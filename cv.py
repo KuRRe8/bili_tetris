@@ -37,6 +37,8 @@ class ScreenshotProcessor:
         self.screenshot: Optional[Image.Image] = None # always store the last screenshot, use other code to gurantee the sc is up to date.
 
         self.annotated_image: Optional[Image.Image] = None # in RGB format, used for debug.
+        self.playable = False
+
         pass
     
     def glance(self):
@@ -46,13 +48,20 @@ class ScreenshotProcessor:
         self.screenshot.show()
         return
     
-    def capture(self):
+    def capture(self) -> bool:
 
         logger.debug('capture begin')
+
+        self.playable = False
+
         # invoke individually before get_P_zone() and get_N_zone()
         if self.window is None:
-            self.window = _utils.WindowUtils.find_tetris_window()
-            logger.debug(f"Found window")
+            try:
+                self.window = _utils.WindowUtils.find_tetris_window()
+                logger.debug(f"Found window")
+            except:
+                logger.error('capture error')
+                return False
 
         _utils.WindowUtils.bring_to_front(self.window)
 
@@ -64,9 +73,12 @@ class ScreenshotProcessor:
             screenshot = sct.grab(monitor)
             image = Image.fromarray(np.array(screenshot)[:, :, :3][..., ::-1])  # Convert BGR to RGB
         self.screenshot = image
+        self.playable = True
+
         logger.debug('capture end')
+        return True
     
-    def get_P_zone(self)->Tuple[cv2.typing.MatLike,Tuple[int,int,int,int]]:
+    def get_P_zone(self)->Tuple[cv2.typing.MatLike,Tuple[int,int,int,int]|None]:
         '''
         Palletizing Zone is the main gaming zone, consists of 20 rows and 10 columns.
 
@@ -86,20 +98,31 @@ class ScreenshotProcessor:
 
         x, y, w, h = cv2.boundingRect(coords)
 
+        # Randomly select two points from coords
+        if len(coords) > 1:
+            point1, point2 = coords[np.random.choice(len(coords), 2, replace=False)].squeeze(axis=1)
+            # Check if either point is close to any bbox boundary
+            if not (abs(point1[0] - x) < 10 or abs(point1[0] - (x + w)) < 10 or
+                abs(point1[1] - y) < 10 or abs(point1[1] - (y + h)) < 10 or
+                abs(point2[0] - x) < 10 or abs(point2[0] - (x + w)) < 10 or
+                abs(point2[1] - y) < 10 or abs(point2[1] - (y + h)) < 10):
+                    logger.error("Randomly selected points are not near bbox boundaries.")
+                    return img_cv, None
+            
         cv2.rectangle(img_cv, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        
         return img_cv, (x, y, w, h)
     
-    def get_P_zone_new_state(self) -> cv2.typing.MatLike:
+    def get_P_zone_new_state(self) -> bool:
         '''
         In this method, determine which block is filled, and internally update GameState singleton.
         new state is represented by ndarray of 20 rows and 10 columns.
 
-        Return: preview of annoated image.
+        Return: success or not.
         '''
+
         img_with_bbox, bbox = self.get_P_zone() # here the img_with_bbox is in BGR format.
         if bbox is None:
-            raise RuntimeError("P Zone not found.")
+            return False
 
         x, y, w, h = bbox
         cell_width_in_pixel_float = w / 10
@@ -123,9 +146,10 @@ class ScreenshotProcessor:
                 
                 if pixel_HSV[2] < config.settings.CV_BLOCKS_GHOST_HSV_V_THRESHOLD:
                     # Draw a small circle at the center of the cell, indicate the cell is empty
-                    radius = min(cell_width_in_pixel_float, cell_height_in_pixel_float) // 6
-                    radius = round(radius)
-                    cv2.circle(img_with_bbox, (center_x, center_y), radius, (0, 0, 0), -1)
+                    ##radius = min(cell_width_in_pixel_float, cell_height_in_pixel_float) // 6
+                    ##radius = round(radius)
+                    ##cv2.circle(img_with_bbox, (center_x, center_y), radius, (0, 0, 0), -1)
+                    pass
                 else:
                     p_zone_mask[row, col] = 1 # 1 means this cell is filled. always ignore first two rows.
 
@@ -136,6 +160,8 @@ class ScreenshotProcessor:
         # match excat color, check the row 1 col 5 color, if it is background color, check row 1 col 6.
         # if both are empty, it means that capture is too late, may it goes down already.
 
+
+        # try to find current block in the top middle.
         center_y = y + 0*cell_height_in_pixel_float + cell_height_in_pixel_float / 2
         center_y = round(center_y)
         center_x = x + 4 * cell_width_in_pixel_float + cell_width_in_pixel_float / 2
@@ -164,17 +190,17 @@ class ScreenshotProcessor:
             cell_center_bgr = img_with_bbox[center_y, center_x] # BGR
             if np.all(cell_center_bgr == config.settings.CV_PZONE_BACKGROUND_COLOR):
                 logger.info("Cell is background color, no block detected in row 1 col 5 and 6.")
-                return img_with_bbox
+                return False
             for block_type, color in block_colors_dict.items():
                 if np.all(cell_center_bgr == color):
                     game_state_singleton.update_current_block(block_type)
                     break
 
-        self.annotated_image = Image.fromarray(cv2.cvtColor(img_with_bbox, cv2.COLOR_BGR2RGB))
-        return img_with_bbox
+        #self.annotated_image = Image.fromarray(cv2.cvtColor(img_with_bbox, cv2.COLOR_BGR2RGB))
+        return True
         
     
-    def get_N_zone(self) -> Tuple[cv2.typing.MatLike, Tuple[int, int, int, int]]:
+    def get_N_zone(self) -> Tuple[cv2.typing.MatLike, Tuple[int, int, int, int]|None]:
         '''
         Next Zone is the area that shows the next block.
         
@@ -198,12 +224,15 @@ class ScreenshotProcessor:
         largest_contour = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(largest_contour)
 
+        # typically there is no need to check this zone, one possible defect is that user Avatar may 
+        # be the same color of CV_NZONE_COLOR
+
         # Draw the bounding box of the largest connected component
         cv2.rectangle(img_cv, (x, y), (x + w, y + h), (0, 255, 0), 2)
         
         return img_cv, (x, y, w, h)
     
-    def get_N_zone_new_state(self) -> None:
+    def get_N_zone_new_state(self) -> bool:
         '''
         Determine the next block type and update the game state.
         '''
@@ -211,7 +240,7 @@ class ScreenshotProcessor:
         logger.debug('get_N_zone_new_state')
         img_with_bbox, bbox = self.get_N_zone()
         if bbox is None:
-            raise RuntimeError("N Zone not found.")
+            return False
         x, y, w, h = bbox
         region_of_interest = img_with_bbox[y:y + h, x:x + w]
 
@@ -239,12 +268,14 @@ class ScreenshotProcessor:
                 detected_block_type = item[0]
 
         if detected_block_type is None:
-            raise RuntimeError("No matching block color found in N Zone.")
+            logger.error('cannot detect in get_N_zone_new_state')
+            return False
 
         # Update the game state with the detected block type
         game_state_singleton = alg.GameState()
         game_state_singleton.update_next_block(detected_block_type)
         #logger.debug(f'Detected NEXT block type if file cv.py: {detected_block_type}')
+        return True
 
 def _test_routine1():
     '''

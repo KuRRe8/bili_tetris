@@ -237,10 +237,10 @@ class Tetrominoes:
         for shape in rotations:
             shape_np = np.array(shape)
             col_heights = [0] * 4
-            for x in range(4):
-                for y in range(4):
-                    if shape_np[y][x]:
-                        col_heights[x] = y + 1
+            for col_idx in range(4):
+                for row_idx in range(4):
+                    if shape_np[row_idx][col_idx]:
+                        col_heights[col_idx] = row_idx + 1
             Tetris_Col_H[block_type].append(col_heights)
 
     logger.info('Tetris_Col_H calculated.')

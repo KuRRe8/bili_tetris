@@ -67,35 +67,35 @@ class SearchAlgorithm:
         rows, cols = board.shape
 
         score = 0
-        min_y = np.zeros(cols + 1, dtype=int) # one more column for height check
+        min_col_height = np.zeros(cols, dtype=int) # large number when there is no block
 
         # Unified evaluation weights
         factor = {'hole': -50, 'h_change': -5, 'y_factor': -10, 'h_variance': -10}
 
-        # Column heights (min_y)
-        for x in range(cols):
-            for y in range(rows):
-                if board[y, x] != 0:
-                    min_y[x] = y
+        # Column heights (min_col_idx)
+        for col_idx in range(cols):
+            for row_index in range(rows):
+                if board[row_index, col_idx] != 0:
+                    min_col_height[col_idx] = row_index
                     break
             else:
-                min_y[x] = rows
+                min_col_height[col_idx] = rows
 
         # Hole count
         hole_score = 0
-        for x in range(cols):
-            for y in range(min_y[x] + 1, rows):
-                if board[y, x] == 0:
+        for col_idx in range(cols):
+            for row_index in range(min_col_height[col_idx] + 1, rows):
+                if board[row_index, col_idx] == 0:
                     hole_score += factor['hole']
         score += hole_score
 
         # Height change
-        for x in range(1, cols):
-            v = min_y[x] - min_y[x - 1]
+        for col_idx in range(1, cols):
+            v = min_col_height[col_idx] - min_col_height[col_idx - 1]
             score += abs(v) * factor['h_change']
 
         # Refined average height: exclude 1~2 outliers
-        sorted_heights = np.sort(min_y[:cols])
+        sorted_heights = np.sort(min_col_height[:cols])
         trimmed_heights = sorted_heights[1:-1] if cols > 2 else sorted_heights
         avg_height = np.mean(trimmed_heights)
 
@@ -108,7 +108,7 @@ class SearchAlgorithm:
             score += int(factor['y_factor'] * penalty / rows)
 
         # Height variance
-        h_var_sum = sum((avg_height - min_y[x]) ** 2 for x in range(cols))
+        h_var_sum = sum((avg_height - min_col_height[col_idx]) ** 2 for col_idx in range(cols))
         h_variance_score = h_var_sum * factor['h_variance'] / (cols * 100)
         score += int(h_variance_score)
 

@@ -22,7 +22,10 @@ Description:
 import config.settings
 from _logger import logger
 from _utils import classonlymethod
+from _utils import Tetrominoes, TetrisBlockType
+
 import numpy as np
+from typing import Tuple, Dict, List, Optional, Union, Any
 
 class GameConcept():
     '''
@@ -31,19 +34,109 @@ class GameConcept():
     def __init__(self):
         raise RuntimeError('cannot be instantiated')
 
+    
     @classonlymethod
-    def is_collide(cls, board: np.ndarray, block_matrix: np.ndarray, x: int, y: int) -> bool:
-        """
-        判断当前 block_matrix 放在 (x, y) 是否与 board 碰撞。
-        """
+    def is_collide(cls, board: np.ndarray, block_matrix: np.ndarray, row_now: int, col_now: int) -> bool:
+
         rows, cols = board.shape
-        for dy in range(4):
-            for dx in range(4):
-                if block_matrix[dy][dx] == 0:
+        for row_idx in range(4):
+            for col_idx in range(4):
+                if block_matrix[row_idx][col_idx] == 0:
                     continue
-                by, bx = y + dy, x + dx
-                if by < 0 or by >= rows or bx < 0 or bx >= cols:
+                board_row_idx, board_col_idx = row_now+row_idx, col_now+col_idx
+                if board_col_idx < 0 or board_col_idx >= cols or board_row_idx < 0 or board_row_idx >= rows:
                     return True
-                if board[by][bx] != 0:
+                if board[board_row_idx][board_col_idx] != 0:
                     return True
         return False
+    
+
+    @classonlymethod
+    def clear_lines(cls, board: np.ndarray) -> Tuple[np.ndarray, int]:
+        """
+        对当前棋盘执行行消除，返回新棋盘和消除行数。
+        满一整行（非零）就消除，并将上面的行下移。
+        """
+        new_board = board[~np.all(board == 1, axis=1)]
+        cleared = board.shape[0] - new_board.shape[0]
+        new_board = np.vstack([np.zeros((cleared, board.shape[1]), dtype=int), new_board])
+        return new_board, cleared
+
+    @classonlymethod
+    def clear_lines_attack_score(cls, cleared: int) -> float:
+        match cleared:
+            case 0:
+                return 0.1
+            case 1:
+                return 1.1
+            case 2:
+                return 2.4
+            case 3:
+                return 3.8
+            case 4:
+                return 5.6
+            case _: # may get more than 4 clear because of garbage block
+                return 5.6
+    
+    @classonlymethod
+    def place_block(cls, board: np.ndarray, block_matrix: np.ndarray, column_offest: int, row_offset: int) -> np.ndarray:
+        """
+        将 block_matrix 放置到 board 的 (x, y)，返回新的 board（不修改原始）。
+        """
+        new_board = board.copy()
+        rows, cols = board.shape
+
+        for block_row_idx in range(4):
+            for block_column_index in range(4):
+                if block_matrix[block_row_idx][block_column_index] == 0:
+                    continue
+                board_row_idx, board_column_index = row_offset + block_row_idx, column_offest + block_column_index
+                if 0 <= board_row_idx < rows and 0 <= board_column_index < cols:
+                    new_board[board_row_idx][board_column_index] = block_matrix[block_row_idx][block_column_index]
+                else:
+                    raise ValueError(f"Block out of bounds at ({board_column_index}, {board_row_idx} in Cartesian)")
+        return new_board
+    
+    @classonlymethod
+    def get_final_row_pos_giving_col(cls, board: np.ndarray, block_matrix: np.ndarray, col_offset: int, row_offset_start: int = 2) -> int:
+        """
+        模拟 block 从 start_y 开始向下自由落体，返回最后能放置的 y 值（不碰撞）。
+        注意：不会修改原始棋盘，也不会进行放置。
+
+        这里行索引从2开始， 默认不考虑在堆叠极高情况的计算
+        """
+        row_offset = row_offset_start
+        while not GameConcept.is_collide(board, block_matrix, row_offset, col_offset):
+            row_offset += 1
+        return row_offset - 1
+
+    @classonlymethod
+    def possible_moves(cls, board: np.ndarray, block_type: TetrisBlockType) -> List[Tuple[int, int, int]]:
+        """
+        给定当前棋盘和一个 block 类型，返回所有合法放置位置：
+        """
+        rows, cols = board.shape
+        results = []
+
+        shapes = Tetrominoes.shapes[block_type]
+        for spin_index, shape in enumerate(shapes):
+            block_matrix = np.array(shape)
+
+            used_cells = [(row_idx, col_idx) for row_idx in range(4) for col_idx in range(4) if block_matrix[row_idx][col_idx]]
+            if not used_cells:
+                continue
+
+            min_col_idx = min(__ for _, __ in used_cells)
+            max_col_idx = max(__ for _, __ in used_cells)
+            block_width = max_col_idx - min_col_idx + 1
+
+            for col_idx in range(cols - block_width + 1):
+                actual_col_now = col_idx - min_col_idx  # 对齐左边边界
+                try:
+                    lowest_row_idx_now = GameConcept.get_final_row_pos_giving_col(board, block_matrix, actual_col_now)
+                    if not GameConcept.is_collide(board, block_matrix, lowest_row_idx_now, actual_col_now):
+                        results.append((spin_index, lowest_row_idx_now, actual_col_now))
+                except ValueError:
+                    continue
+
+        return results

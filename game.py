@@ -64,19 +64,20 @@ class GameConcept():
 
     @classonlymethod
     def clear_lines_attack_score(cls, cleared: int) -> float:
+        fac = 2
         match cleared:
             case 0:
-                return 0.1
+                return 0.1*fac
             case 1:
-                return 1.1
+                return 1.1*fac
             case 2:
-                return 2.4
+                return 2.4*fac
             case 3:
-                return 3.8
+                return 3.8*fac
             case 4:
-                return 5.6
+                return 5.6*fac
             case _: # may get more than 4 clear because of garbage block
-                return 5.6
+                return 5.6*fac
     
     @classonlymethod
     def place_block(cls, board: np.ndarray, block_matrix: np.ndarray, column_offest: int, row_offset: int) -> np.ndarray:

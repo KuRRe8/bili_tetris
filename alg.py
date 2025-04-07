@@ -61,9 +61,8 @@ class GameState(metaclass=_utils.SingletonMeta):
     
 class SearchAlgorithm:
     @_utils.classonlymethod
-    def _evaluate(cls, current_attack: float = 0.0) -> int:
-        state = GameState()
-        board = state.game_board
+    def _evaluate(cls, board: np.ndarray, current_attack: float = 0.0) -> int:
+
         rows, cols = board.shape
 
         score = 0
@@ -118,22 +117,140 @@ class SearchAlgorithm:
         return int(score)
     
     @_utils.classonlymethod
-    def _get_attack_result(cls):
+    def _get_attack_result(cls, board: np.ndarray, block_matrix: np.ndarray, row_idx: int, col_idx: int) -> Tuple[np.ndarray, float]:
         """
-        Calculate the attack result based on the current game state.
-        :param
-        :return: 
+        放置 block_matrix 到指定位置后，执行行消除，并返回 (新棋盘, 攻击得分)
         """
-        pass
+        from game import GameConcept  # 避免循环引用问题
+
+        new_board = GameConcept.place_block(board, block_matrix, col_idx, row_idx)
+        cleared_board, cleared_lines = GameConcept.clear_lines(new_board)
+        attack_score = GameConcept.clear_lines_attack_score(cleared_lines)
+
+        return cleared_board, attack_score
     
     @_utils.classonlymethod
-    def search(self) :
-        """
-        Perform a search algorithm to find the best move.
-        :param 
-        :return: 
-        """
-        pass
+    def search(cls) -> Tuple[int, int, int]:
+        from game import GameConcept
+
+        state = GameState()
+        board_before_decision = state.game_board
+        cur_block = state.current_block
+        next_block = state.next_block
+
+        assert cur_block is not None, "Current block must be set"
+        legal_moves = GameConcept.possible_moves(board_before_decision, cur_block)
+
+        best_score = -float('inf')
+        best_move = None
+
+        for spin_idx, row_idx, col_idx in legal_moves:
+            block_matrix = np.array(_utils.Tetrominoes.shapes[cur_block][spin_idx])
+            board_after, attack_score = cls._get_attack_result(board_before_decision, block_matrix, row_idx, col_idx)
+
+            # depth-1 score
+            score = cls._evaluate(board=board_after,current_attack=attack_score)
+
+            # depth-2 search if next block available
+            if next_block is not None:
+                next_moves = GameConcept.possible_moves(board_after, next_block)
+                second_best = -float('inf')
+                for next_spin, next_row, next_col in next_moves:
+                    next_block_matrix = np.array(_utils.Tetrominoes.shapes[next_block][next_spin])
+                    board_after2, attack_score2 = cls._get_attack_result(board_after, next_block_matrix, next_row, next_col)
+                    s = cls._evaluate(board=board_after2,current_attack=attack_score2)
+                    if s > second_best:
+                        second_best = s
+                score += second_best
+
+            if score > best_score:
+                best_score = score
+                best_move = (spin_idx, row_idx, col_idx)
+
+        return best_move
+
+
+
+
+
+
+
+def test_alg_setUp1():
+    """
+    Set up a GameState instance with a predefined board and blocks.
+    """
+    state = GameState()
+    # Construct a board with the left bottom 10 rows and 9 columns filled
+    board = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    ], dtype=np.int8)
+    state.update_board(board)
+
+    # Set the current block to I and the next block to T
+    state.update_current_block(_utils.TetrisBlockType.I)
+    state.update_next_block(_utils.TetrisBlockType.T)
+
+def test_alg_setUp2():
+    """
+    Set up a GameState instance with a more complex predefined board and blocks.
+    """
+    state = GameState()
+    # Construct a board with a more complex configuration
+    board = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    ], dtype=np.int8)
+    state.update_board(board)
+
+    # Set the current block to L and the next block to Z
+    state.update_current_block(_utils.TetrisBlockType.T)
+    state.update_next_block(_utils.TetrisBlockType.Z)
+
+def test_search():
+    """
+    Test the search method of SearchAlgorithm with the predefined GameState.
+    """
+    best_move = SearchAlgorithm.search()
+    pass
 
 if __name__ == "__main__":
+    test_alg_setUp2()
+    test_search()
     pass

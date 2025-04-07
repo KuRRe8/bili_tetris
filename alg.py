@@ -71,7 +71,7 @@ class SearchAlgorithm:
         min_col_height = np.zeros(cols, dtype=int) # large number when there is no block
 
         # Unified evaluation weights
-        factor = {'hole': -50, 'h_change': -5, 'y_factor': -10, 'h_variance': -10}
+        factor = {'hole': -80, 'h_change': -5, 'y_factor': -10, 'h_variance': -10}
 
         # Column heights (min_col_idx)
         for col_idx in range(cols):
@@ -110,7 +110,7 @@ class SearchAlgorithm:
 
         # Height variance
         h_var_sum = sum((avg_height - min_col_height[col_idx]) ** 2 for col_idx in range(cols))
-        h_variance_score = h_var_sum * factor['h_variance'] / (cols * 100)
+        h_variance_score = h_var_sum * factor['h_variance'] / (1 * 100) # previously cols * 100
         score += int(h_variance_score)
 
         # Add attack score from game module

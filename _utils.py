@@ -52,7 +52,6 @@ class WindowUtils:
         try:
             import win32gui
             win32gui.SetForegroundWindow(window._hWnd)  # Bring the window to the foreground
-            logger.debug(f"Set focus to window with handle: {window._hWnd}")
         except ImportError:
             logger.error("win32gui module is not available. Cannot set focus to window.")
             return

@@ -20,10 +20,10 @@ INFO = 20
 DEBUG = 10
 NOTSET = 0
 '''
-LOGGER_LVL = 10
+LOGGER_LVL = 20
 
 # KBD
-KBD_MININTERVAL = 0.05 # unstable when less than 0.03
+KBD_MININTERVAL = 0.06 # unstable when less than 0.03
 KBD_LISTENER_FUNC_HOTKEY = 'alt+9'
 KBD_STOP_FUNC_HOTKEY = 'alt+0'
 KBD_EXIT_HOTKEY = 'alt+='

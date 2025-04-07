@@ -51,7 +51,7 @@ def thread_play(playevent:threading.Event, closeevent:threading.Event):
                     continue
 
                 alg.GameState().up_to_date = True
-                spin, row, col = alg.SearchAlgorithm().search()
+                spin, row, col = alg.SearchAlgorithm.search()
                 destination = col-3 # since the Tetrominoes start from col3 (start from 0)
                 if destination < 0:
                     keyboardctrl.KeyboardController.multi_rotate(spin)

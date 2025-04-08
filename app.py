@@ -23,6 +23,7 @@ def thread_play(playevent:threading.Event, closeevent:threading.Event):
             import controlpanel
             import game
             import time
+            import numpy as np
 
             sp = cv.ScreenshotProcessor()
             alg.GameState().reset()
@@ -53,6 +54,12 @@ def thread_play(playevent:threading.Event, closeevent:threading.Event):
                 alg.GameState().up_to_date = True
                 spin, row, col = alg.SearchAlgorithm.search()
                 destination = col-3 # since the Tetrominoes start from col3 (start from 0)
+                logger.info(f'Current: {alg.GameState().current_block.value}, '
+                            f'Next: {alg.GameState().next_block.value},'
+                            f'Decision spin: {spin},'
+                            f'Decision dest: {destination}')
+                formatted_board = np.array2string(alg.GameState().game_board, separator=', ')
+                logger.info("GAME_BOARD:\n%s", formatted_board)
                 if destination < 0:
                     keyboardctrl.KeyboardController.multi_rotate(spin)
                     keyboardctrl.KeyboardController.multi_left(abs(destination))

@@ -32,7 +32,7 @@ def setup_logger(log_file="app.log", level=logging.INFO):
 
 # Initialize the global logger
 current_date = datetime.now().strftime("%Y-%m-%d")
-LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), "logs", f"app.{current_date}.log")
+LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), "logs", f"app.{datetime.now().strftime('%Y-%m-%d_%H-%M')}.log")
 os.makedirs(os.path.dirname(LOG_FILE_PATH), exist_ok=True)
 logger = setup_logger(log_file=LOG_FILE_PATH,level=config.settings.LOGGER_LVL)
 

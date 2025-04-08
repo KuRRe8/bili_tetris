@@ -71,7 +71,7 @@ class SearchAlgorithm:
         min_col_height = np.zeros(cols, dtype=int) # large number when there is no block
 
         # Unified evaluation weights
-        factor = {'hole': -80, 'h_change': -5, 'y_factor': -10, 'h_variance': -10}
+        factor = {'hole': -50, 'h_change': -10, 'y_factor': -10, 'h_variance': -20}
 
         # Column heights (min_col_idx)
         for col_idx in range(cols):
@@ -245,6 +245,40 @@ def test_alg_setUp2():
     state.update_current_block(_utils.TetrisBlockType.T)
     state.update_next_block(_utils.TetrisBlockType.Z)
 
+def test_alg_setUp3():
+    """
+    Set up a GameState instance with a more complex predefined board and blocks.
+    """
+    state = GameState()
+    # Construct a board with a more complex configuration
+    board = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 0, 1, 0],
+    ], dtype=np.int8)
+    state.update_board(board)
+
+    # Set the current block to L and the next block to Z
+    state.update_current_block(_utils.TetrisBlockType.T)
+    state.update_next_block(_utils.TetrisBlockType.S)
+
 def test_search():
     """
     Test the search method of SearchAlgorithm with the predefined GameState.
@@ -253,6 +287,6 @@ def test_search():
     pass
 
 if __name__ == "__main__":
-    test_alg_setUp2()
+    test_alg_setUp3()
     test_search()
     pass

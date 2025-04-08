@@ -64,7 +64,7 @@ class GameConcept():
 
     @classonlymethod
     def clear_lines_attack_score(cls, cleared: int) -> float:
-        fac = 2
+        fac = 4
         match cleared:
             case 0:
                 return 0.1*fac

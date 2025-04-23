@@ -20,7 +20,7 @@ INFO = 20
 DEBUG = 10
 NOTSET = 0
 '''
-LOGGER_LVL = 20
+LOGGER_LVL = 30
 
 # KBD
 KBD_MININTERVAL = 0.06 # unstable when less than 0.03

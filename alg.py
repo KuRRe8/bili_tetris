@@ -101,8 +101,8 @@ class SearchAlgorithm:
         avg_height = np.mean(trimmed_heights)
 
         # Apply Y factor penalty only if average height is out of 4~10 range
-        if avg_height < 4:
-            penalty = (4 - avg_height) ** 2
+        if avg_height < 1:
+            penalty = (1 - avg_height) ** 2
             score += int(factor['y_factor'] * penalty / rows)
         elif avg_height > 10:
             penalty = (avg_height - 10) ** 2
@@ -279,14 +279,47 @@ def test_alg_setUp3():
     state.update_current_block(_utils.TetrisBlockType.T)
     state.update_next_block(_utils.TetrisBlockType.S)
 
+def test_alg_setUp4():
+    """
+    Set up a GameState instance with a more complex predefined board and blocks.
+    """
+    state = GameState()
+    # Construct a board with a more complex configuration
+    board = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 0, 1, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1]], dtype=np.int8)
+    state.update_board(board)
+
+    # Set the current block to L and the next block to Z
+    state.update_current_block(_utils.TetrisBlockType.L)
+    state.update_next_block(_utils.TetrisBlockType.O)
+
 def test_search():
     """
     Test the search method of SearchAlgorithm with the predefined GameState.
     """
-    best_move = SearchAlgorithm.search()
+    spin, _, col = SearchAlgorithm.search()
+    dest = col-3
     pass
 
 if __name__ == "__main__":
-    test_alg_setUp3()
+    test_alg_setUp4()
     test_search()
     pass
